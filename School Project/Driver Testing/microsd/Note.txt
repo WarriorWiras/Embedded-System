@@ -1,0 +1,11 @@
+main.c → This is the boss. It tells everyone what to do. It sets up the computer, checks if the SD card is ready, then asks the flash chip to do tests. Finally, it writes the test results into a file (like a notebook).
+
+flash_benchmark.h & flash_benchmark.c → These are the flash chip testers. They know how to poke the chip, ask “who are you?” (chip ID), and then time how fast it can read, write, or erase. Like a stopwatch for the chip.
+
+sd_card.h & sd_card.c → These are the SD card helpers. They know how to open the SD card, create files, and add new results into the file. Like a librarian who writes things into the notebook.
+
+diskio.h & diskio.c → These are the very low-level drivers. Think of them like the hands and mouth that actually pass messages to the SD card over wires. They do the raw talking.
+
+ff.h & ff.c → This is FatFs, the library that makes the SD card act like a little computer hard drive. It knows about files and folders. Without this, you’d only see random numbers.
+
+CMakeLists.txt → This is the recipe. It tells the kitchen (the compiler) which ingredients (files) to use and how to cook them into one program.

@@ -1,0 +1,5 @@
+if (NOT PICO_NO_HARDWARE)
+    add_subdirectory(spi)
+    add_subdirectory(microsd)
+    add_subdirectory(wifi)
+endif ()

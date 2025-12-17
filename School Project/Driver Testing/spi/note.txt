@@ -1,0 +1,76 @@
+The jumper wire configuration:
+
+Master <--> Slave
+GP16 <--> GP16 = MISO (SDI0, master-in/slave-out)
+GP17 <--> GP17 = CS (active low)
+GND <--> GND (must be common)
+GP18 <--> GP18 = SCK
+GP19 <--> GP19 = MOSI (SDO0, master-out/slave-in)
+
+============================================================
+
+Master firmware — #master_spi.c
+
+Sets up the Pico as an SPI master on SPI0 (MISO=GP16, CS=GP17, SCK=GP18, MOSI=GP19) and uses a button on GP20 to trigger a two-frame exchange.
+When you press the button, it (1) pulls CS low and sends "hello from master by wafi\0" to the slave, then (2) pulls CS low again and clocks in the slave’s reply by sending dummy bytes. It prints both raw hex and the ASCII reply. SPI mode is CPOL=0, CPHA=0 and it runs slowly (≈20 kHz) so the bit-banged slave can keep up. 
+
+
+Slave firmware — #slave_spi.c
+
+Implements a software (bit-banged) SPI slave on GPIO: MISO=GP16 (output), CS=GP17 (input, active-low), SCK=GP18 (input), MOSI=GP19 (input). It watches CS:
+• First CS-low frame = receive bytes (samples MOSI on SCK rising, mode 0) until it sees '\0'.
+• Second CS-low frame = transmit a prepared reply ("hi master, this is slave by wafi\0") by driving MISO bit-by-bit while the master clocks SCK.
+It prints what it received and when it sends the reply. 
+
+
+Wiring note — #note.txt
+
+Simple jumper map between the two boards. Connect:
+GP16↔GP16 (MISO), GP17↔GP17 (CS), GP18↔GP18 (SCK), GP19↔GP19 (MOSI), and GND↔GND. Common ground is required. 
+
+Build system — CMake (top and per-target)
+
+The top-level CMakeLists adds two subprojects: master_spi and slave_spi. 
+
+The master CMakeLists builds master_spi.c, links pico_stdlib, hardware_spi, hardware_gpio, enables USB stdio, and emits UF2/ELF. 
+
+The slave CMakeLists builds slave_spi.c, links pico_stdlib + hardware_gpio (no hardware SPI needed since it bit-bangs), enables USB stdio, and emits outputs.
+
+
+
+============================= Simpler Mode ==========================
+
+Master (master_spi.c)
+
+- Acts as SPI boss (SPI0) on pins: MISO=GP16, CS=GP17, SCK=GP18, MOSI=GP19.
+
+- Press GP20 → sends “hello from master by wafi\0”, then asks for a reply.
+
+- Prints what it sent/received (hex + text).
+
+- SPI mode 0, slow (~20 kHz) so the software slave can keep up.
+
+Slave (slave_spi.c)
+
+- Acts as SPI helper using plain GPIO (bit-banged).
+
+- First CS-low: listen until it sees '\0'.
+
+- Second CS-low: send back “hi master, this is slave by wafi\0”.
+
+- Prints what it heard and when it replied.
+
+Wiring (note.txt)
+
+- Connect the pins straight across:
+    GP16↔GP16 (MISO), GP17↔GP17 (CS), GP18↔GP18 (SCK), GP19↔GP19 (MOSI), GND↔GND.
+
+- Must share GND.
+
+Build (CMake)
+
+- Top-level CMake builds two apps: master_spi and slave_spi.
+
+- Master CMake: builds master_spi.c, links pico_stdlib, hardware_spi, hardware_gpio, enables USB stdio, outputs UF2/ELF.
+
+- Slave CMake: builds slave_spi.c, links pico_stdlib + hardware_gpio (no hardware SPI), enables USB stdio, outputs UF2/ELF.

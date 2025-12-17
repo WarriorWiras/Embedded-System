@@ -1,0 +1,59 @@
+This one must put into your pico-example and build cause this directory cannot build for wifi only (idkk how to settle this but yeah) THENNNNNNNNNNNNNNNNNN dont forget to change the build to Pico ARM GCC (CMAKE LOGO > CONFIGURE > Change from GCC.... to Pico ARM GCC), not sure anything text meeeeeeeeeeeeeeeeeeeee
+
+
+====================================================================
+
+
+lwipopts.h
+
+Tiny config shim for LWIP (the networking stack). It just includes the standard example settings so LWIP builds correctly on Pico W. 
+
+
+Top-level CMakeLists.txt
+
+Declares the project and pulls in two subfolders: master and slave. Initializes the Pico SDK. 
+
+
+Master (Pico A)
+master.c
+
+Connects the Pico W to Wi-Fi (using SSID/password from secrets.h).
+
+Waits for you to press the GP20 button (debounced).
+
+On press, builds the message "hello from <MASTER_NAME>" and sends it via UDP to the SLAVE_IP on port 5555.
+
+Sets a UDP receive callback; if a reply arrives within 5 s, it prints it, otherwise prints a timeout. Also blinks the onboard Wi-Fi LED at startup. 
+
+
+master/secrets.h
+
+Holds your Wi-Fi SSID/password, the SLAVE_IP to send to, and friendly names (MASTER_NAME, SLAVE_NAME). You should edit these to match your network and the slave’s IP. 
+
+
+master/CMakeLists.txt
+
+Builds the master app, adds include paths (for secrets.h and LWIP opts), links against the threadsafe background CYW43 + LWIP library, and enables USB stdio for printf. 
+
+
+Slave (Pico B)
+slave.c
+
+Connects to the same Wi-Fi.
+
+Binds a UDP socket on port 5555 and listens.
+
+When a packet arrives, logs it, then replies with: "hi <MASTER_NAME>, this is <SLAVE_NAME>".
+
+Uses a small blink routine to flash the Wi-Fi LED on receive and on transmit. Also prints its IP/mask/gateway on boot so you know what IP to put in the master’s SLAVE_IP. 
+
+
+slave/secrets.h
+
+Holds the Wi-Fi SSID/password (same network as master) and the display names. No fixed IP here—the slave just listens. 
+
+
+slave/CMakeLists.txt
+
+Builds the slave app with the same networking libs and USB stdio enabled. 
+
