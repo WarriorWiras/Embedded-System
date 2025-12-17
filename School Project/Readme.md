@@ -149,8 +149,6 @@ This project is licensed under the **MIT License**.
 
 You are free to use, modify, and distribute this project for **educational and non-commercial purposes**, provided proper attribution is given.
 
-See the `LICENSE` file for full details.
-
 ---
 
 ✨ *Measure carefully. Log precisely. Analyse responsibly.*
